@@ -1,0 +1,38 @@
+name: Build and Test with Docker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Docker Buildx (for building Docker images)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t github-actions-test:latest .
+
+      # Run the Docker container (optional, for testing the JAR execution)
+      - name: Run Docker container
+        run: |
+          docker run --rm github-actions-test:latest
+        continue-on-error: true  # Optional: allows the workflow to continue even if the container fails (e.g., no main class)
+
+      # Run tests inside the Docker container
+      - name: Run Maven tests in Docker
+        run: |
+          docker run --rm github-actions-test:latest mvn test
